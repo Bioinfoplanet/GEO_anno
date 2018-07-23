@@ -1,2 +1,4 @@
 # hello-world
-This is our first work
+## We are glad to welcome you all to Bioinfoplanet
+
+Love git, love bioinfo!
