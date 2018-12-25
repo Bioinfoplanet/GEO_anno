@@ -1,0 +1,104 @@
+rm(list = ls())
+nm_gpl='GPL570'
+id2sequence_file = 'GPL570.id2sequence.csv'
+dir = '/home/u1239/xijieprobeid/hg38' #参考基因组和注释文件存放位置
+ref_name <- 'Homo_sapiens.GRCh38.dna.primary_assembly.fa'
+gtf_name <- 'Homo_sapiens.GRCh38.94.gtf'
+library(tidyverse)
+options(stringsAsFactors = F)
+#step1 get fasta
+
+id2sequence <- read.csv(id2sequence_file)
+
+colnames(id2sequence) <- c('ID','SEQUENCE')
+all_recs=paste(
+  apply(
+    id2sequence,
+    1,
+    function(x){
+      paste0('>',x[1],'\n',x[2])
+    }
+  ),collapse = '\n') #生成fasta格式的字符串
+writeLines(substring(all_recs,1,1000))
+temp <- tempfile()  
+write(all_recs, temp)
+
+
+#step2 get bam
+library(Rsubread)
+
+index='reference_index.00.b.tab'
+if(!file.exists(index)){ 
+  ref <- file.path(dir,ref_name)
+  buildindex(basename="reference_index",reference=ref)       ## 平台文件
+}
+
+## 是单端数据，fa序列来源于上一个步骤输出的gpl的探针
+reads <- temp
+align(index="reference_index",readfile1=reads,
+      output_file=paste0(nm_gpl,'.BAM'),phredOffset=64) 
+mapped_per <- propmapped(paste0(nm_gpl,'.BAM')) #0.999415
+
+
+#step 3-1 bam - grange
+
+library(Rsamtools)
+bamFile=paste0(nm_gpl,'.BAM')
+bam <- scanBam(bamFile)
+names(bam[[1]])
+tmp=as.data.frame(do.call(cbind,lapply(bam[[1]],as.character)))
+tmp=tmp[tmp$flag!=4,] 
+library(GenomicRanges)
+my_seq <- with(tmp, GRanges(as.character(rname), 
+                            IRanges(as.numeric(pos)-25, as.numeric(pos)+25), 
+                            as.character(strand), 
+                            id = as.character(qname)))
+#step 3-2 gtf - grange
+
+
+library(refGenome)
+gr='my_gr.RData'
+if(!file.exists(gr)){
+  gtf <- file.path(dir,gtf_name)
+  ens <- ensemblGenome()
+  read.gtf(ens,useBasedir = F,gtf)
+  #获取位置信息
+  my_gene <- getGenePositions(ens) 
+  save(my_gene,file='my_gene.Rdata')
+  ## 成为Grange对象
+  library(GenomicRanges)
+  my_gr <- with(my_gene, GRanges(seqid, IRanges(start, end), 
+                                 strand, id = gene_id))
+  save(my_gr,file=gr)   ## 保存到本地
+}
+load(gr)  ## 载入数据
+
+#step 5 findOverlaps
+
+o = findOverlaps(my_seq,my_gr)
+lo=cbind(as.data.frame(my_seq[queryHits(o)]),
+         as.data.frame(my_gr[subjectHits(o)]))
+#有一些行是完全重复的，大量的行是探针与基因对应关系重复
+
+lo_dup=lo[!duplicated(lo[,c(6,12)]),] #行数 63227
+
+write.table(lo_dup,file = paste0(nm_gpl,'_probe2ensemb.csv'),row.names = F,sep = ',')
+
+lo_dup <- read.csv(paste0(nm_gpl,'_probe2ensemb.csv'))
+
+summary <- data.frame(
+  raw = nrow(id2sequence),
+  n_probe = nrow(count(id2sequence,ID)),
+  unique_sequence = nrow(count(id2sequence,SEQUENCE)),
+  sequence_mapped = nrow(tmp),
+  n_lo = nrow(lo),
+  n_lo_dup = nrow(lo_dup),
+  n_probe_mapped = nrow(count(lo_dup,id)),
+  n_gene = nrow(count(lo_dup,id.1))
+)
+
+
+save(lo,lo_dup,summary,file =paste0(nm_gpl,'.Rdata'))
+
+
+
