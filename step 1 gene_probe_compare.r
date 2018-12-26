@@ -40,7 +40,6 @@ rm(list =paste0("zz",1:6))
 #biocductor包
 Bio = toTable(hgu133plus2ENSEMBL)
 #新流程注释
-rm(list = ls())
 Mine =  read.csv('GPL570_probe2ensemb.csv')[,c(6,12)]
 #统一列名
 colnames(Aff) <- colnames(Bio)
