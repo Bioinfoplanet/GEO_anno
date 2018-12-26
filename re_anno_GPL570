@@ -1,9 +1,10 @@
+#更新探针位置长度
 rm(list = ls())
 nm_gpl='GPL570'
 id2sequence_file = 'GPL570.id2sequence.csv'
-dir = '/home/u1239/xijieprobeid/hg38' #参考基因组和注释文件存放位置
-ref_name <- 'Homo_sapiens.GRCh38.dna.primary_assembly.fa'
-gtf_name <- 'Homo_sapiens.GRCh38.94.gtf'
+dir = '/home/u1239/xijieprobeid/ref' #参考基因组和注释文件存放位置
+ref_name <- 'GRCh38.primary_assembly.genome.fa'
+gtf_name <- 'gencode.v29.primary_assembly.annotation.gtf'
 library(tidyverse)
 options(stringsAsFactors = F)
 #step1 get fasta
@@ -11,6 +12,7 @@ options(stringsAsFactors = F)
 id2sequence <- read.csv(id2sequence_file)
 
 colnames(id2sequence) <- c('ID','SEQUENCE')
+
 all_recs=paste(
   apply(
     id2sequence,
@@ -32,7 +34,7 @@ if(!file.exists(index)){
   ref <- file.path(dir,ref_name)
   buildindex(basename="reference_index",reference=ref)       ## 平台文件
 }
-
+ 
 ## 是单端数据，fa序列来源于上一个步骤输出的gpl的探针
 reads <- temp
 align(index="reference_index",readfile1=reads,
@@ -50,7 +52,8 @@ tmp=as.data.frame(do.call(cbind,lapply(bam[[1]],as.character)))
 tmp=tmp[tmp$flag!=4,] 
 library(GenomicRanges)
 my_seq <- with(tmp, GRanges(as.character(rname), 
-                            IRanges(as.numeric(pos)-25, as.numeric(pos)+25), 
+                            IRanges(as.numeric(pos)-str_length(id2sequence[1,2]), 
+                                    as.numeric(pos)+str_length(id2sequence[1,2])), 
                             as.character(strand), 
                             id = as.character(qname)))
 #step 3-2 gtf - grange
@@ -96,7 +99,6 @@ summary <- data.frame(
   n_probe_mapped = nrow(count(lo_dup,id)),
   n_gene = nrow(count(lo_dup,id.1))
 )
-
 
 save(lo,lo_dup,summary,file =paste0(nm_gpl,'.Rdata'))
 
