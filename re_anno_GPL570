@@ -1,10 +1,21 @@
-#更新探针位置长度
+#输入文件：两列的csv或txt文件，id2sequence
+#需要参考基因组和gtf文件。构建索引需要27G内存支持
+#输出文件：12列的csv文件，prove2ensembl
 rm(list = ls())
 nm_gpl='GPL570'
 id2sequence_file = 'GPL570.id2sequence.csv'
 dir = '/home/u1239/xijieprobeid/ref' #参考基因组和注释文件存放位置
-ref_name <- 'GRCh38.primary_assembly.genome.fa'
-gtf_name <- 'gencode.v29.primary_assembly.annotation.gtf'
+#ftp://ftp.ensembl.org/pub/release-94/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+#ftp://ftp.ensembl.org/pub/release-94/gtf/homo_sapiens/Homo_sapiens.GRCh38.94.gtf.gz
+ref_name <- 'Homo_sapiens.GRCh38.dna.primary_assembly.fa'
+gtf_name <- 'Homo_sapiens.GRCh38.94.gtf'
+
+
+if(!require("Rsubread"))BiocManager::install("Rsubread")
+if(!require("Rsamtools"))BiocManager::install("Rsamtools")
+if(!require("refGenome"))BiocManager::install("refGenome")
+if(!require("GenomicRanges"))BiocManager::install("GenomicRanges")
+if(!require(tidyverse))install.packages('tidyverse')
 library(tidyverse)
 options(stringsAsFactors = F)
 #step1 get fasta
@@ -101,6 +112,3 @@ summary <- data.frame(
 )
 
 save(lo,lo_dup,summary,file =paste0(nm_gpl,'.Rdata'))
-
-
-
