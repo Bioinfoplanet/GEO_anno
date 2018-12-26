@@ -1,5 +1,8 @@
 # step4 type作图
-#3-1 idchange and 20 venn
+#输入文件：前两步的Rdata
+#输出文件：韦恩图
+#4-1 idchange and 4 venn
+rm(list = ls())
 load('hgnc_family_type.Rdata')
 load('ABM_gene_probe.Rdata')
 library(tidyverse)
@@ -23,6 +26,7 @@ venn <- function(x,y,z,name){
   library (VennDiagram)
   venn.diagram(x= list(Aff = x,Bio = y,Mine = z),
                filename = paste0(name,".png"),
+               main = name,
                height = 450, width = 450,
                resolution =300,
                imagetype="png",
@@ -39,7 +43,7 @@ venn(uni(Aff_type),uni(Bio_type),uni(Mine_type),"top4type_all")
 save(type_top4,Bio_type,Aff_type,Mine_type,file = 'ABM_top4type.Rdata')
 
 
-# 3-2 分开画图
+# 4-2 分开画图
 load('ABM_top4type.Rdata')
 ABM_type_list <- list(Aff_type=Aff_type,Bio_type=Bio_type,Mine_type=Mine_type)
 
