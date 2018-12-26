@@ -27,6 +27,7 @@ venn <- function(x,y,z,name){
   library (VennDiagram)
   venn.diagram(x= list(Aff = x,Bio = y,Mine = z),
                filename = paste0(name,".png"),
+               main = name,
                height = 450, width = 450,
                resolution =300,
                imagetype="png",
