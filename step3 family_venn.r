@@ -1,6 +1,10 @@
 #3-1 reshape
+#输入文件：前两步的Rdata
+#输出文件：韦恩图：总和分
+rm(list = ls())
 load('hgnc_family_type.Rdata')
 load('ABM_gene_probe.Rdata')
+if(!require(tidyverse))install.packages('tidyverse')
 library(tidyverse)
 count_family <- count(hgnc_family,gene_family,sort = T)
 family_top20 <- as.character((head(count_family,20))$gene_family)
