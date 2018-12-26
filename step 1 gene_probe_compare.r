@@ -1,4 +1,13 @@
+#输入文件：官网注释文件HG-U133_Plus_2.na36.annot.csv，自由注释文件GPL570_probe2ensemb.csv'
+#输出文件：三个注释的Rdata，格式两列分别是id和ensemblid，两个韦恩图，分别是probe和gene
+#http://www.affymetrix.com/support/technical/byproduct.affx?product=hg-u133-plus,
+#下载地址http://www.affymetrix.com/Auth/analysis/downloads/na36/ivt/HG-U133_Plus_2.na36.annot.csv.zip
+
 #step 1 gene_probe_compare
+if(!require("hgu133plus2"))BiocManager::install("hgu133plus2")
+if(!require("clusterProfiler"))BiocManager::install("clusterProfiler")
+if(!require("org.Hs.eg.db"))BiocManager::install("org.Hs.eg.db")
+if(!require(tidyverse))install.packages('tidyverse')
 library(hgu133plus2.db)
 library(tidyverse)
 empty.omit <- function(x){
@@ -31,8 +40,8 @@ rm(list =paste0("zz",1:6))
 #biocductor包
 Bio = toTable(hgu133plus2ENSEMBL)
 #新流程注释
+rm(list = ls())
 Mine =  read.csv('GPL570_probe2ensemb.csv')[,c(6,12)]
-#http://www.affymetrix.com/Auth/analysis/downloads/na36/ivt/HG-U133_Plus_2.na36.annot.csv.zip
 #统一列名
 colnames(Aff) <- colnames(Bio)
 colnames(Mine)<- colnames(Bio)
@@ -63,7 +72,8 @@ venn <- function(x,y,z,name){
   if(!require(VennDiagram))install.packages('VennDiagram')
   library (VennDiagram)
   venn.diagram(x= list(Aff = x,Bio = y,Mine = z),
-               filename = paste0(name,".png"),
+               filename = paste(name,".png"),
+               main = name,
                height = 450, width = 450,
                resolution =300,
                imagetype="png",
@@ -74,10 +84,10 @@ venn <- function(x,y,z,name){
                cat.cex=0.45)
 }
 # #一张
-venn(Aff$probe_id,Bio$probe_id,Mine$probe_id,"ABM_probe")
+venn(Aff$probe_id,Bio$probe_id,Mine$probe_id,"mapped_probe")
 # #两张
-venn(Aff$ensembl_id,Bio$ensembl_id,Mine$ensembl_id,"ABM_gene")
+venn(Aff$ensembl_id,Bio$ensembl_id,Mine$ensembl_id,"mapped_gene")
 # 保存基因与探针数据
-save(Aff,Bio,Mine,file = 'ABM_gene_probe.Rdata')
+save(Aff,Bio,Mine,file = 'mapped_gene_probe.Rdata')
 
 
