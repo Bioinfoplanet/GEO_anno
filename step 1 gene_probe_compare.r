@@ -18,12 +18,12 @@ zz1 = read.csv('HG-U133_Plus_2.na36.annot.csv',
                comment.char = "#")[,c(1,19)]
 zz1 <- empty.omit(zz1)
 zz2<- apply(zz1,
-             1,
-             function(x){
-               paste(x[1],
-                     str_split(x[2],'///',simplify=T),
-                     sep = "///")
-             })
+            1,
+            function(x){
+              paste(x[1],
+                    str_split(x[2],'///',simplify=T),
+                    sep = "///")
+            })
 zz3 <- tibble(unlist(zz2))
 
 colnames(zz3) <- "lala" 
@@ -31,8 +31,8 @@ zz4 <- separate(zz3,lala,c("probe","gene"),sep = "///")
 library(clusterProfiler) 
 library(org.Hs.eg.db)
 zz5<- bitr(zz4$gene, fromType = "ENTREZID",
-                  toType = c("ENSEMBL"),
-                  OrgDb = org.Hs.eg.db)
+           toType = c("ENSEMBL"),
+           OrgDb = org.Hs.eg.db)
 zz6 <- merge(zz4,zz5,by.x = "gene",by.y='ENTREZID')[,-1]
 #官网注释
 Aff <- zz6
@@ -71,16 +71,19 @@ venn <- function(x,y,z,name){
   if(!require(VennDiagram))install.packages('VennDiagram')
   library (VennDiagram)
   venn.diagram(x= list(Aff = x,Bio = y,Mine = z),
-               filename = paste(name,".png"),
-               main = name,
-               height = 450, width = 450,
-               resolution =300,
-               imagetype="png",
-               col="transparent",
-               fill=c("green","yellow","darkorchid1"),
-               alpha = 0.50,
-               cex=0.45,
-               cat.cex=0.45)
+               filename=paste(name,".png"),
+               lwd=1,#圈线粗度
+               lty=1, #圈线类型
+               col=c('#0099CC','#FF6666','#FFCC99'), #圈线颜色
+               fill=c('#0099CC','#FF6666','#FFCC99'), #填充颜色
+               cat.col=c('#0099CC','#FF6666','#FFCC99'),#A和B的颜色
+               cat.cex = 1.5,# A和B的大小
+               rotation.degree = 0,#旋转角度
+               main = name,#主标题内容
+               main.cex = 1.5,#主标题大小
+               cex=1.5,#里面交集字的大小
+               alpha = 0.5,#透明度
+               reverse=TRUE)
 }
 # #一张
 venn(Aff$probe_id,Bio$probe_id,Mine$probe_id,"mapped_probe")
@@ -88,5 +91,3 @@ venn(Aff$probe_id,Bio$probe_id,Mine$probe_id,"mapped_probe")
 venn(Aff$ensembl_id,Bio$ensembl_id,Mine$ensembl_id,"mapped_gene")
 # 保存基因与探针数据
 save(Aff,Bio,Mine,file = 'mapped_gene_probe.Rdata')
-
-
