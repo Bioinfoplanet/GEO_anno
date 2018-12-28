@@ -71,7 +71,7 @@ venn <- function(x,y,z,name){
   if(!require(VennDiagram))install.packages('VennDiagram')
   library (VennDiagram)
   venn.diagram(x= list(Aff = x,Bio = y,Mine = z),
-               filename=paste(name,".png"),
+               filename=paste(name,".tiff"),
                lwd=1,#圈线粗度
                lty=1, #圈线类型
                col=c('#0099CC','#FF6666','#FFCC99'), #圈线颜色
@@ -91,3 +91,5 @@ venn(Aff$probe_id,Bio$probe_id,Mine$probe_id,"mapped_probe")
 venn(Aff$ensembl_id,Bio$ensembl_id,Mine$ensembl_id,"mapped_gene")
 # 保存基因与探针数据
 save(Aff,Bio,Mine,file = 'mapped_gene_probe.Rdata')
+
+
