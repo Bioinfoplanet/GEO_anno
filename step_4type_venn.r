@@ -4,7 +4,7 @@
 #4-1 idchange and 4 venn
 rm(list = ls())
 load('hgnc_family_type.Rdata')
-load('ABM_gene_probe.Rdata')
+load('mapped_gene_probe.Rdata')
 library(tidyverse)
 count_type <- count(hgnc_type,locus_group,sort = T)
 type_top4 <- as.character((count_type)$locus_group)
@@ -21,7 +21,7 @@ Mine_type <- unique.data.frame(merge(Mine,hgnc_type,
 
 
 #画图
-venn <- function(x,y,z,name){
+venn <- function(x,y,z,name,title){
   if(!require(VennDiagram))install.packages('VennDiagram')
   library (VennDiagram)
   venn.diagram(x= list(Aff = x,Bio = y,Mine = z),
@@ -34,7 +34,7 @@ venn <- function(x,y,z,name){
                cat.col=c('#0099CC','#FF6666','#FFCC99'),#A和B的颜色
                cat.cex = 1.5,# A和B的大小
                rotation.degree = 0,#旋转角度
-               main = name,#主标题内容
+               main = title,#主标题内容
                main.cex = 1.5,#主标题大小
                cex=1.5,#里面交集字的大小
                alpha = 0.5,#透明度
@@ -43,7 +43,7 @@ venn <- function(x,y,z,name){
 uni <- function(x){
   (unite(x,"x1",c(colnames(x)[1],colnames(x)[2]),sep = " "))[,1]
 }
-venn(uni(Aff_type),uni(Bio_type),uni(Mine_type),"top4type_all")
+venn(uni(Aff_type),uni(Bio_type),uni(Mine_type),"top4type_all","type")
 save(type_top4,Bio_type,Aff_type,Mine_type,file = 'ABM_top4type.Rdata')
 
 
@@ -59,7 +59,7 @@ for (j in 1:3){
                            locus_group==type_top4[i])
     )$ensembl_id
   }
-  names(output) <- paste(1:length(type_top4),type_top4,sep = ".")
+  names(output) <- type_top4
   output_list[[j]] = output
 }
 names(output_list) <- names(ABM_type_list)
@@ -68,5 +68,6 @@ for (i in c(1:length(type_top4))){
   venn(output_list[[1]][[i]],
        output_list[[2]][[i]],
        output_list[[3]][[i]],
-       name = names(output_list[[1]][i]))
+       name = paste(i,names(output_list[[1]][i]),sep="."),
+       title = names(output_list[[1]][i]))
 }
