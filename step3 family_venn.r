@@ -3,7 +3,7 @@
 #输出文件：韦恩图：总和分
 rm(list = ls())
 load('hgnc_family_type.Rdata')
-load('ABM_gene_probe.Rdata')
+load('mapped_gene_probe.Rdata')
 if(!require(tidyverse))install.packages('tidyverse')
 library(tidyverse)
 count_family <- count(hgnc_family,gene_family,sort = T)
@@ -21,7 +21,7 @@ Mine_family <- unique.data.frame(merge(Mine,family_s,
                      by.y ='ensembl_gene_id')[,-2])
 #画图
 #包装韦恩图函数
-venn <- function(x,y,z,name){
+venn <- function(x,y,z,name,title){
   if(!require(VennDiagram))install.packages('VennDiagram')
   library (VennDiagram)
   venn.diagram(x= list(Aff = x,Bio = y,Mine = z),
@@ -34,7 +34,7 @@ venn <- function(x,y,z,name){
                cat.col=c('#0099CC','#FF6666','#FFCC99'),#A和B的颜色
                cat.cex = 1.5,# A和B的大小
                rotation.degree = 0,#旋转角度
-               main = name,#主标题内容
+               main = title,#主标题内容
                main.cex = 1.5,#主标题大小
                cex=1.5,#里面交集字的大小
                alpha = 0.5,#透明度
@@ -43,15 +43,18 @@ venn <- function(x,y,z,name){
 uni <- function(x){
   (unite(x,"x1",c(colnames(x)[1],colnames(x)[2]),sep = " "))[,1]
 }
-venn(uni(Aff_family),uni(Bio_family),uni(Mine_family),"top20_all")
+venn(uni(Aff_family),uni(Bio_family),uni(Mine_family),"1.top20_all","family")
 save(family_top20,Bio_family,Aff_family,Mine_family,file = 'ABM_top20family.Rdata')
 
 # 3-2 分开画图
 load('ABM_top20family.Rdata')
 ABM_family_list <- list(Aff_family=Aff_family,Bio_family=Bio_family,Mine_family=Mine_family)
-#需要改掉特殊字符
-family_top20[6] <- 'Small nucleolar RNAs C or D box'
-family_top20[10] <- 'Small nucleolar RNAs H or ACA box'
+#韦恩图标题和文件名需要改掉特殊字符/
+ft <- family_top20
+
+ft[6] <- 'Small nucleolar RNAs C or D box'
+ft[10] <- 'Small nucleolar RNAs H or ACA box'
+
 #批量作图
 output_list <- list()
 for (j in 1:3){
@@ -61,7 +64,7 @@ for (j in 1:3){
                            gene_family==family_top20[i])
     )$ensembl_id
   }
-  names(output) <- paste(1:20,family_top20,sep = '.')
+  names(output) <- ft
   output_list[[j]] = output
 }
 names(output_list) <- names(ABM_family_list)
@@ -69,13 +72,14 @@ for (i in 1:20){
   venn(output_list[[1]][[i]],
        output_list[[2]][[i]],
        output_list[[3]][[i]],
-       name = names(output_list[[1]][i]))
+       name = paste(i,names(output_list[[1]][i]),sep="."),
+       title = names(output_list[[1]][i]))
 }
 
 #准备修改的导出为pdf
 #字体有重叠，需要纠正
-#8,9,15,18
-venn2 <- function(x,y,z,name){
+
+venn2 <- function(x,y,z,name,title){
   vennplot <- venn.diagram(x= list(Aff = x,Bio = y,Mine = z),
                imagetype ="tiff",
                filename=NULL,
@@ -86,7 +90,7 @@ venn2 <- function(x,y,z,name){
                cat.col=c('#0099CC','#FF6666','#FFCC99'),#A和B的颜色
                cat.cex = 1.5,# A和B的大小
                rotation.degree = 0,#旋转角度
-               main = name,#主标题内容
+               main = title,#主标题内容
                main.cex = 1.5,#主标题大小
                cex=1.5,#里面交集字的大小
                alpha = 0.5,#透明度
@@ -94,11 +98,13 @@ venn2 <- function(x,y,z,name){
   grid.draw(vennplot)
 }
 
+
+#8,9,15,18
 dev.off()
 for (i in 18){
   venn2(output_list[[1]][[i]],
        output_list[[2]][[i]],
        output_list[[3]][[i]],
-       name = names(output_list[[1]][i]))
+       name = paste(i,names(output_list[[1]][i]),sep="."),
+       title = names(output_list[[1]][i]))
 }
-
