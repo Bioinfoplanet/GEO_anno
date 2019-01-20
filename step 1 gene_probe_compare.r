@@ -4,7 +4,7 @@
 #下载地址http://www.affymetrix.com/Auth/analysis/downloads/na36/ivt/HG-U133_Plus_2.na36.annot.csv.zip
 
 #step 1 gene_probe_compare
-if(!require("hgu133plus2"))BiocManager::install("hgu133plus2")
+if(!require("hgu133plus2.db"))BiocManager::install("hgu133plus2.db")
 if(!require("clusterProfiler"))BiocManager::install("clusterProfiler")
 if(!require("org.Hs.eg.db"))BiocManager::install("org.Hs.eg.db")
 if(!require(tidyverse))install.packages('tidyverse')
