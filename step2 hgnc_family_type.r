@@ -35,8 +35,3 @@ hgnc_type <- hgnc_type %>%
   empty.omit()
 
 save(hgnc,hgnc_family,hgnc_type,file = "hgnc_family_type.Rdata")
-
-
-
-
-
